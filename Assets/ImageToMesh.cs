@@ -11,7 +11,7 @@ using UnityEngine;
 public class ImageToMesh : MonoBehaviour
 {
     [SerializeField]
-    private Texture2D m_Texture;
+    private Texture2D depthImage;
     [SerializeField]
     private float depthMin = 0.1f;
     [SerializeField]
@@ -62,10 +62,10 @@ public class ImageToMesh : MonoBehaviour
         Mesh mesh = new Mesh();
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-        GetTextureOriginalSize(m_Texture, out int width, out int height);
+        GetTextureOriginalSize(depthImage, out int width, out int height);
 
-        int texWidth = m_Texture.width;
-        int texHeight = m_Texture.height;
+        int texWidth = depthImage.width;
+        int texHeight = depthImage.height;
 
         Debug.Log(width + "," + height);
         Vector3[] vertices = new Vector3[width * height];
@@ -80,7 +80,7 @@ public class ImageToMesh : MonoBehaviour
             {
                 float texX = (float)x / width*texWidth;
                 float texY = (float)y / height*texHeight;
-                float depth = m_Texture.GetPixel((int)texX,(int)texY).r;
+                float depth = depthImage.GetPixel((int)texX,(int)texY).r;
                 depth = DepthToMeter(depth);
                 float X = (x - width / 2f) * depth * k;
                 float Y = (y - height / 2f) * depth * k;
@@ -141,7 +141,7 @@ public class ImageToMesh : MonoBehaviour
             new Vector4((float)height/width /2f/ fovHalfTan, 0, 0, 0), 
             new Vector4(0, 1/2f/fovHalfTan, 0, 0), 
             new Vector4(0, 0, 1 / (depthMax - depthMin), 0), 
-            new Vector4(0, 0, 0, -(depthMax + depthMin) / 2 / (depthMax - depthMin)));
+            new Vector4(0, 0, -(depthMax + depthMin) / 2 / (depthMax - depthMin), 1));
 
         var newMat = projectorMeshRenderer.material;
         newMat.SetMatrix("_PerspectiveMatrix", perspectiveMatrix);
