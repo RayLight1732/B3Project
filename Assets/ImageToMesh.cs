@@ -16,12 +16,52 @@ public class ImageToMesh : MonoBehaviour
     private float depthMin = 0.1f;
     [SerializeField]
     private float depthMax = 5f;
+    /*
     [SerializeField]
     private Material projectorMaterial;
+    */
+    [SerializeField]
+    private float threshold = 0.05f;
 
     private MeshFilter meshFilter;
-    
+    /*
+    private GameObject projector;
+    private MeshFilter projectorMeshFiltor;
+    private MeshRenderer projectorMeshRenderer;
+    */
 
+    private float lastDepthMin = 0;
+    private float lastDepthMax = 0;
+    private float lastThreshold = 0;
+    private float lastFov = 0;
+
+
+    //プロパティの変化を確認し、更新する
+    private bool CheckPropertyChange(float fov)
+    {
+        bool result = false;
+        if (depthMin != lastDepthMin)
+        {
+            result = true;
+            lastDepthMin = depthMin;
+        }
+        if (depthMax != lastDepthMax)
+        {
+            result = true;
+            lastDepthMax = depthMax;
+        }
+        if (threshold != lastThreshold)
+        {
+            result = true;
+            lastThreshold = threshold;
+        }
+        if (fov != lastFov)
+        {
+            result = true;
+            lastFov = fov;
+        }
+        return result;
+    }
     private float DepthToMeter(float depth)
     {
         return (1-depth) * (depthMax - depthMin) + depthMin;
@@ -52,13 +92,31 @@ public class ImageToMesh : MonoBehaviour
         return false;
     }
 
+    private float GetFov()
+    {
+        Camera camera = GetComponent<Camera>();
+        return camera.fieldOfView;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        Camera camera = GetComponent<Camera>();
-        float fov = camera.fieldOfView;
-
         meshFilter = gameObject.GetComponent<MeshFilter>();
+
+        /*
+        GameObject projector = new GameObject("Projector");
+        projector.transform.parent = transform;
+
+        projectorMeshFiltor = projector.AddComponent<MeshFilter>();
+        projectorMeshRenderer = projector.AddComponent<MeshRenderer>();
+        */
+
+    }
+
+
+
+    private void ApplyDepthMesh(in MeshFilter meshFilter,in Texture2D depthImage,float fov)
+    {
         Mesh mesh = new Mesh();
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
@@ -69,6 +127,7 @@ public class ImageToMesh : MonoBehaviour
 
         Debug.Log(width + "," + height);
         Vector3[] vertices = new Vector3[width * height];
+        Vector2[] uv = new Vector2[width * height];
 
         float fovHalfTan = Mathf.Tan(fov * Mathf.Deg2Rad / 2f);
 
@@ -78,13 +137,15 @@ public class ImageToMesh : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                float texX = (float)x / width*texWidth;
-                float texY = (float)y / height*texHeight;
-                float depth = depthImage.GetPixel((int)texX,(int)texY).r;
+
+                uv[y * width + x] = new Vector2((float)x/width, (float)y / height);
+                float texX = (float)x / width * texWidth;
+                float texY = (float)y / height * texHeight;
+                float depth = depthImage.GetPixel((int)texX, (int)texY).r;
                 depth = DepthToMeter(depth);
                 float X = (x - width / 2f) * depth * k;
                 float Y = (y - height / 2f) * depth * k;
-                vertices[y*width+x] = new Vector3(X, Y, depth);
+                vertices[y * width + x] = new Vector3(X, Y, depth);
             }
         }
 
@@ -94,27 +155,46 @@ public class ImageToMesh : MonoBehaviour
         {
             for (int y = 0; y < height - 1; y++)
             {
-                triangles[triangleIndex] = y * width + x;
-                triangles[triangleIndex + 2] = y * width + x + 1;
-                triangles[triangleIndex + 1] = (y + 1) * width + x + 1;
-                triangles[triangleIndex + 3] = (y + 1) * width + x + 1;
-                triangles[triangleIndex + 5] = (y + 1) * width + x;
-                triangles[triangleIndex + 4] = y * width + x;
-                triangleIndex += 6;
+                int p1i = y * width + x;//左下の頂点
+                int p2i = y * width + x + 1;//右下の頂点
+                int p3i = (y + 1) * width + x + 1;
+                int p4i = (y + 1) * width + x;
+
+                Vector3 p1 = vertices[p1i];
+                Vector3 p2 = vertices[p2i];
+                Vector3 p3 = vertices[p3i];
+                Vector3 p4 = vertices[p4i];
+                if (CheckZDistance(p1, p2, p3, threshold))
+                {
+                    triangles[triangleIndex + 0] = p1i;
+                    triangles[triangleIndex + 1] = p3i;
+                    triangles[triangleIndex + 2] = p2i;
+                    triangleIndex += 3;
+                }
+
+                if (CheckZDistance(p1, p3, p4, threshold))
+                {
+                    triangles[triangleIndex + 0] = p1i;
+                    triangles[triangleIndex + 1] = p4i;
+                    triangles[triangleIndex + 2] = p3i;
+                    triangleIndex += 3;
+                }
             }
         }
 
         mesh.SetVertices(vertices);
         mesh.SetTriangles(triangles, 0);
 
+        mesh.uv = uv;
         meshFilter.mesh = mesh;
+    }
+
+    private Matrix4x4 ApplyProjectorMesh(in MeshFilter projectorMeshFiltor,float fov)
+    {
+        float fovHalfTan = Mathf.Tan(fov * Mathf.Deg2Rad / 2f);
+        GetTextureOriginalSize(depthImage, out int width, out int height);
 
 
-        GameObject projector = new GameObject("Projector");
-        projector.transform.parent = transform;
-        MeshFilter projectorMeshFiltor = projector.AddComponent<MeshFilter>();
-        MeshRenderer projectorMeshRenderer = projector.AddComponent<MeshRenderer>();
-        projectorMeshRenderer.material = projectorMaterial;
 
         Vector3[] projectorMeshVertices = new Vector3[8];
         float nearLeft = -1 * depthMin * fovHalfTan * width / height;
@@ -138,15 +218,19 @@ public class ImageToMesh : MonoBehaviour
 
         projectorMeshFiltor.mesh = projectorMesh;
         Matrix4x4 perspectiveMatrix = new Matrix4x4(
-            new Vector4((float)height/width /2f/ fovHalfTan, 0, 0, 0), 
-            new Vector4(0, 1/2f/fovHalfTan, 0, 0), 
-            new Vector4(0, 0, 1 / (depthMax - depthMin), 0), 
+            new Vector4((float)height / width / 2f / fovHalfTan, 0, 0, 0),
+            new Vector4(0, 1 / 2f / fovHalfTan, 0, 0),
+            new Vector4(0, 0, 1 / (depthMax - depthMin), 0),
             new Vector4(0, 0, -(depthMax + depthMin) / 2 / (depthMax - depthMin), 1));
 
-        var newMat = projectorMeshRenderer.material;
-        newMat.SetMatrix("_PerspectiveMatrix", perspectiveMatrix);
+        return perspectiveMatrix;
     }
 
+    //zの差がthreshold以下の場合true
+    private bool CheckZDistance(Vector3 p1,Vector3 p2,Vector3 p3,float threshold)
+    {
+        return Mathf.Abs(p1.z - p2.z) <= threshold && Mathf.Abs(p1.z - p3.z) <= threshold && Mathf.Abs(p2.z - p3.z) <= threshold;
+    }
     private void AddQuadVertices(in Vector3[] vertices,int startIndex,float left, float top,float z)
     {
         vertices[startIndex+0] = new Vector3(left, top, z);
@@ -170,6 +254,17 @@ public class ImageToMesh : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        float fov = GetFov();
+        if (CheckPropertyChange(fov))
+        {
+            ApplyDepthMesh(in meshFilter, in depthImage, fov);
+            /*
+            Matrix4x4 perspectiveMatrix = ApplyProjectorMesh(in projectorMeshFiltor, fov);
+
+            projectorMeshRenderer.material = projectorMaterial;
+            var newMat = projectorMeshRenderer.material;
+            newMat.SetMatrix("_PerspectiveMatrix", perspectiveMatrix);
+            */
+        }
     }
 }
