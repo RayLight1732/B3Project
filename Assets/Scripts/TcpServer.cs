@@ -47,7 +47,8 @@ namespace B3Project
         {
             if (listener == null)
             {
-                //いろいろ雑なのでいつか直す
+                //Stopした時にちゃんとループも明示的に止めたほうがいいとおもう
+
                 Task.Run(() => { StartServerAsync(localaddr, port); });
             }
         }
@@ -58,10 +59,14 @@ namespace B3Project
             listener.Start();
             while (true)
             {
-                //とりあえずStopすればとまる
+                //とりあえずStopした時にとまる(はず、未検証)
                 var client = await listener.AcceptTcpClientAsync();
                 //別スレッドに投げる
+                //StopしたらStreamは閉じられる？
+                //こっちも明示的にループから抜けたほうがいい？
+                // CancellationTokenがキーワード
                 Task.Run(() => HandleClient(client)); 
+      
             }
         }
 
