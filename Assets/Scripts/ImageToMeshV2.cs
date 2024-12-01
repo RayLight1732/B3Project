@@ -10,13 +10,14 @@ using UnityEngine;
 [RequireComponent(typeof(Camera), typeof(MeshFilter), typeof(MeshRenderer))]
 public class ImageToMeshV2 : MonoBehaviour {
     [SerializeField]
-    private float threshold = 0.05f;
+    public float threshold = 0.05f;
     [SerializeField]
     private TextAsset textAsset;
 
     
 
     private MeshFilter meshFilter;
+    private MeshRenderer meshRenderer;
 
     private float lastThreshold = 0;
     private float lastFov = 0;
@@ -66,6 +67,7 @@ public class ImageToMeshV2 : MonoBehaviour {
     }
 
 
+
     private float GetFov() {
         Camera camera = GetComponent<Camera>();
         return camera.fieldOfView;
@@ -74,17 +76,22 @@ public class ImageToMeshV2 : MonoBehaviour {
     // Start is called before the first frame update
     void Start() {
         meshFilter = gameObject.GetComponent<MeshFilter>();
+        meshRenderer = gameObject.GetComponent<MeshRenderer>();
     }
 
 
 
     private void ApplyDepthMesh(in MeshFilter meshFilter,in TextAsset depthText, float fov) {
-        Mesh mesh = new() {
+        float[,] depth = LoadCSVToMatrix(depthText, out int width, out int height);
+        ApplyDepthMesh(meshFilter, depth, width, height, fov);
+    }
+
+    private void ApplyDepthMesh(in MeshFilter meshFilter, float[,] depth,int width,int height,float fov)
+    {
+        Mesh mesh = new()
+        {
             indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
         };
-
-        float[,] depth = LoadCSVToMatrix(depthText,out int width,out int height);
-
         Debug.Log(width + "," + height);
         Vector3[] vertices = new Vector3[width * height];
         Vector2[] uv = new Vector2[width * height];
@@ -93,8 +100,10 @@ public class ImageToMeshV2 : MonoBehaviour {
 
         float k = 2 * fovHalfTan / height;
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
 
                 uv[y * width + x] = new Vector2((float)x / width, (float)y / height);
                 float depthValue = depth[(int)x, (int)y];
@@ -106,8 +115,10 @@ public class ImageToMeshV2 : MonoBehaviour {
 
         int[] triangles = new int[(width - 1) * (height - 1) * 2 * 3];
         int triangleIndex = 0;
-        for (int x = 0; x < width - 1; x++) {
-            for (int y = 0; y < height - 1; y++) {
+        for (int x = 0; x < width - 1; x++)
+        {
+            for (int y = 0; y < height - 1; y++)
+            {
                 int p1i = y * width + x;//¶‰º‚Ì’¸“_
                 int p2i = y * width + x + 1;//‰E‰º‚Ì’¸“_
                 int p3i = (y + 1) * width + x + 1;
@@ -117,14 +128,16 @@ public class ImageToMeshV2 : MonoBehaviour {
                 Vector3 p2 = vertices[p2i];
                 Vector3 p3 = vertices[p3i];
                 Vector3 p4 = vertices[p4i];
-                if (CheckZDistance(p1, p2, p3, threshold)) {
+                if (CheckZDistance(p1, p2, p3, threshold))
+                {
                     triangles[triangleIndex + 0] = p1i;
                     triangles[triangleIndex + 1] = p3i;
                     triangles[triangleIndex + 2] = p2i;
                     triangleIndex += 3;
                 }
 
-                if (CheckZDistance(p1, p3, p4, threshold)) {
+                if (CheckZDistance(p1, p3, p4, threshold))
+                {
                     triangles[triangleIndex + 0] = p1i;
                     triangles[triangleIndex + 1] = p4i;
                     triangles[triangleIndex + 2] = p3i;
@@ -169,5 +182,19 @@ public class ImageToMeshV2 : MonoBehaviour {
         if (CheckPropertyChange(fov)) {
             ApplyDepthMesh(in meshFilter,in textAsset, fov);
         }
+    }
+
+    public void SetTexture(Texture2D texture)
+    {
+        meshRenderer.material.mainTexture = texture;
+        Debug.Log("set texture");
+    }
+
+    public void SetDepth(float[,] depth)
+    {
+        float fov = GetFov();
+        int width = depth.GetLength(0);
+        int height = depth.GetLength(1);
+        ApplyDepthMesh(in meshFilter, depth,width,height, fov);
     }
 }
