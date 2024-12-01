@@ -58,10 +58,9 @@ namespace B3Project
             listener.Start();
             while (true)
             {
-                Debug.Log("listen");
                 //とりあえずStopすればとまる
                 var client = await listener.AcceptTcpClientAsync();
-
+                //別スレッドに投げる
                 Task.Run(() => HandleClient(client)); 
             }
         }
@@ -69,8 +68,6 @@ namespace B3Project
 
         private async Task HandleClient(TcpClient client)
         {
-            Debug.Log("handle client");
-            await Task.Yield();
             using NetworkStream stream = client.GetStream();
             try
             {
@@ -82,6 +79,7 @@ namespace B3Project
             }
             catch (IOException ex)
             {
+                //現状正常に読み込めたのか、それとも途中で閉じたのかわからない
                 Debug.Log($"Client disconnected: {ex.Message}");
             }
             finally
