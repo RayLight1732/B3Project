@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace B3Project
         {
             /*
              * ‚Æ‚è‚ ‚¦‚¸little endianŒÀ’è
+             * byte[4] id
              * int imageSize
              * byte[imgSize] image
              * int width
@@ -22,6 +24,9 @@ namespace B3Project
              * 
              */
 
+            byte[] idBuffer = new byte[4];
+            await ReadEnsurely(stream, idBuffer, 0, 4, 100);
+            string id = Encoding.ASCII.GetString(idBuffer);
 
             byte[] intBuffer = new byte[4];
             await ReadEnsurely(stream, intBuffer, 0, 4, 100);
@@ -53,7 +58,7 @@ namespace B3Project
                 }
             }
             Debug.Log("return");
-            return new ImageAndDepth(imgBuffer, depth);
+            return new ImageAndDepth(id,imgBuffer, depth);
 
 
         }
@@ -63,13 +68,17 @@ namespace B3Project
 
     public class ImageAndDepth
     {
+        private string id;
+        public string ID { get { return id; } }
+
         private byte[] imageBuffer;
         public byte[] ImageBuffer { get { return imageBuffer; } }
 
         private float[,] depth;
         public float[,] Depth { get { return depth; } }
-        public ImageAndDepth(byte[] imageBuffer, float[,] depth)
+        public ImageAndDepth(string id,byte[] imageBuffer, float[,] depth)
         {
+            this.id = id;
             this.imageBuffer = imageBuffer;
             this.depth = depth;
         }

@@ -13,6 +13,10 @@ public class ImageToMeshV2 : MonoBehaviour {
     public float threshold = 0.05f;
     [SerializeField]
     private TextAsset textAsset;
+    [SerializeField,Tooltip("ASCII”ÍˆÍ“à‚Ì4•¶š")]
+    private string id;
+
+    public string ID { get { return id; } }
 
     
 
@@ -157,22 +161,6 @@ public class ImageToMeshV2 : MonoBehaviour {
     //z‚Ì·‚ªthresholdˆÈ‰º‚Ìê‡true
     private bool CheckZDistance(Vector3 p1, Vector3 p2, Vector3 p3, float threshold) {
         return Mathf.Abs(p1.z - p2.z) <= threshold && Mathf.Abs(p1.z - p3.z) <= threshold && Mathf.Abs(p2.z - p3.z) <= threshold;
-    }
-    private void AddQuadVertices(in Vector3[] vertices, int startIndex, float left, float top, float z) {
-        vertices[startIndex + 0] = new Vector3(left, top, z);
-        vertices[startIndex + 1] = new Vector3(-1 * left, top, z);
-        vertices[startIndex + 2] = new Vector3(-1 * left, -1 * top, z);
-        vertices[startIndex + 3] = new Vector3(left, -1 * top, z);
-    }
-
-    private void AddQuadTriangles(in int[] triangles, int startIndex, int topLeft, int topRight, int bottomRight, int bottomLeft) {
-        triangles[startIndex + 0] = topLeft;
-        triangles[startIndex + 1] = topRight;
-        triangles[startIndex + 2] = bottomRight;
-
-        triangles[startIndex + 3] = bottomRight;
-        triangles[startIndex + 4] = bottomLeft;
-        triangles[startIndex + 5] = topLeft;
     }
 
 

@@ -7,7 +7,7 @@ public class ImageAndDepthServer : MonoBehaviour
 {
 
     [SerializeField]
-    private ImageToMeshV2 imageToMeshV2;
+    private ImageToMeshV2[] imageToMeshV2Array;
 
     private TcpServer<ImageAndDepth> tcpServer;
     void Awake()
@@ -32,16 +32,23 @@ public class ImageAndDepthServer : MonoBehaviour
     {
         ImageAndDepth imageAndDepth = null;
         Debug.Log("update"+tcpServer.GetCount());
+        Dictionary<string,ImageAndDepth> dataMap = new Dictionary<string, ImageAndDepth> ();
         while (tcpServer.GetCount() > 0)
         {
             tcpServer.TryDequeue(out imageAndDepth);
+            dataMap[imageAndDepth.ID] = imageAndDepth;
         }
-        if (imageAndDepth != null)
+        
+        foreach (var imageToMesh in imageToMeshV2Array)
         {
-            Texture2D texture2D = new Texture2D(512, 512);
-            texture2D.LoadImage(imageAndDepth.ImageBuffer);
-            imageToMeshV2.SetTexture(texture2D);
-            imageToMeshV2.SetDepth(imageAndDepth.Depth);
+            var result = dataMap.TryGetValue(imageToMesh.ID, out imageAndDepth);
+            if (result)
+            {
+                Texture2D texture2D = new Texture2D(512, 512);
+                texture2D.LoadImage(imageAndDepth.ImageBuffer);
+                imageToMesh.SetTexture(texture2D);
+                imageToMesh.SetDepth(imageAndDepth.Depth);
+            }
         }
     }
 }
