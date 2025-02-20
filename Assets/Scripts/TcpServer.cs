@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -35,87 +36,105 @@ namespace B3Project
 
     public class TcpServer<T>
     {
-        private ConcurrentQueue<T> recieved = new ConcurrentQueue<T>();
+        private ConcurrentQueue<T> received = new ConcurrentQueue<T>();
         private DataDecoder<T> parser;
         private TcpListener listener;
+        private CancellationTokenSource cts;
+        private ConcurrentBag<TcpClient> clients = new ConcurrentBag<TcpClient>();
 
         public TcpServer(DataDecoder<T> parser)
         {
             this.parser = parser;
         }
-        public void StartConnection(IPAddress localaddr, int port)
+
+        public void StartConnection(IPAddress localAddr, int port)
         {
             if (listener == null)
             {
-                //Stopした時にちゃんとループも明示的に止めたほうがいいとおもう
-
-                Task.Run(() => { StartServerAsync(localaddr, port); });
+                cts = new CancellationTokenSource();
+                Task.Run(() => StartServerAsync(localAddr, port, cts.Token));
             }
         }
 
-        private async void StartServerAsync(IPAddress localaddr, int port)
+        private async Task StartServerAsync(IPAddress localAddr, int port, CancellationToken token)
         {
-            listener = new TcpListener(localaddr, port);
+            listener = new TcpListener(localAddr, port);
             listener.Start();
-            while (true)
+            Debug.Log("Server started.");
+
+            try
             {
-                //とりあえずStopした時にとまる(はず、未検証)
-                var client = await listener.AcceptTcpClientAsync();
-                //別スレッドに投げる
-                //StopしたらStreamは閉じられる？
-                //こっちも明示的にループから抜けたほうがいい？
-                // CancellationTokenがキーワード
-                Task.Run(() => HandleClient(client)); 
-      
+                while (!token.IsCancellationRequested)
+                {
+                    var client = await listener.AcceptTcpClientAsync();
+                    if (token.IsCancellationRequested)
+                    {
+                        client.Close();
+                        break;
+                    }
+                    clients.Add(client);
+                    Task.Run(() => HandleClient(client, token));
+                }
+            }
+            catch (ObjectDisposedException) { } // Ignore when listener is stopped
+            catch (Exception ex)
+            {
+                Debug.Log($"Server error: {ex.Message}");
             }
         }
 
-
-        private async Task HandleClient(TcpClient client)
+        private async Task HandleClient(TcpClient client, CancellationToken token)
         {
             using NetworkStream stream = client.GetStream();
             try
             {
-                while (client.Connected)
+                while (client.Connected && !token.IsCancellationRequested)
                 {
                     T data = await parser.Accept(stream);
-                    recieved.Enqueue(data);
+                    received.Enqueue(data);
                 }
             }
             catch (IOException ex)
             {
-                //現状正常に読み込めたのか、それとも途中で閉じたのかわからない
                 Debug.Log($"Client disconnected: {ex.Message}");
             }
             finally
             {
+                client.Close();
                 Debug.Log("Stream Closed");
             }
-
         }
 
         public void CloseConnection()
         {
             if (listener != null)
             {
+                cts?.Cancel();
                 listener.Stop();
                 listener = null;
-                Debug.Log("Connection closed");
-            }
 
+                foreach (var client in clients)
+                {
+                    client.Close();
+                }
+                clients.Clear();
+
+                Debug.Log("Server stopped and all clients disconnected.");
+            }
         }
 
         public bool TryDequeue(out T result)
         {
-            return recieved.TryDequeue(out result);
+            return received.TryDequeue(out result);
         }
 
         public int GetCount()
         {
-            return recieved.Count;
+            return received.Count;
         }
-
-
-
     }
+
+
+
 }
+

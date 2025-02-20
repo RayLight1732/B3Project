@@ -15,7 +15,8 @@ namespace B3Project
         {
             /*
              * ‚Æ‚è‚ ‚¦‚¸little endianŒÀ’è
-             * byte[4] id
+             * int idLength
+             * byte[idLength] id
              * int imageSize
              * byte[imgSize] image
              * int width
@@ -24,11 +25,14 @@ namespace B3Project
              * 
              */
 
-            byte[] idBuffer = new byte[4];
-            await ReadEnsurely(stream, idBuffer, 0, 4, 100);
-            string id = Encoding.ASCII.GetString(idBuffer);
-
             byte[] intBuffer = new byte[4];
+
+            await ReadEnsurely(stream, intBuffer, 0, 4, 100);
+            int idLength = BitConverter.ToInt32(intBuffer, 0);
+            byte[] idBytes = new byte[idLength];
+            await ReadEnsurely(stream, idBytes, 0, idLength, 100);
+            string id = Encoding.UTF8.GetString(idBytes);
+            
             await ReadEnsurely(stream, intBuffer, 0, 4, 100);
             int imgSize = BitConverter.ToInt32(intBuffer, 0);
             //Debug.Log($"imgSize:{imgSize}");
@@ -49,18 +53,7 @@ namespace B3Project
             float[] depthFlat = new float[width* height];
             Buffer.BlockCopy(depthBuffer,0, depthFlat, 0,depthBuffer.Length);
 
-            float[,] depth = new float[width,height];
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    depth[x, height-y-1] = depthFlat[y*width+x];//Python‘¤‚Å‚Í‰Eã‚ª0,0‚¾‚ªunity‚Å‚Í¶‰º‚ª0,0‚È‚Ì‚ÅA‚»‚Ì·‚ð‹zŽû
-                }
-            }
-            Debug.Log("return");
-            return new ImageAndDepth(id,imgBuffer, depth);
-
-
+            return new ImageAndDepth(id,width,height,imgBuffer, depthFlat);
         }
         
         
@@ -74,13 +67,21 @@ namespace B3Project
         private byte[] imageBuffer;
         public byte[] ImageBuffer { get { return imageBuffer; } }
 
-        private float[,] depth;
-        public float[,] Depth { get { return depth; } }
-        public ImageAndDepth(string id,byte[] imageBuffer, float[,] depth)
+        private float[] depth;
+        public float[] Depth { get { return depth; } }
+
+        private int width;
+        public int Width { get { return width; } }
+
+        private int height;
+        public int Height { get { return height; } }
+        public ImageAndDepth(string id,int width,int height,byte[] imageBuffer, float[] depth)
         {
             this.id = id;
             this.imageBuffer = imageBuffer;
             this.depth = depth;
+            this.width = width;
+            this.height = height;
         }
 
 

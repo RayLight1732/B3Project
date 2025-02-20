@@ -7,7 +7,7 @@ public class ImageAndDepthServer : MonoBehaviour
 {
 
     [SerializeField]
-    private ImageToMeshV2[] imageToMeshV2Array;
+    private ImageToMeshV3[] imageToMeshV3Array;
 
     private TcpServer<ImageAndDepth> tcpServer;
     void Awake()
@@ -30,25 +30,26 @@ public class ImageAndDepthServer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ImageAndDepth imageAndDepth = null;
-        Debug.Log("update"+tcpServer.GetCount());
+        ImageAndDepth imageAndDepth;
         Dictionary<string,ImageAndDepth> dataMap = new Dictionary<string, ImageAndDepth> ();
+        //溜まっているデータを全て取り出す
         while (tcpServer.GetCount() > 0)
         {
             tcpServer.TryDequeue(out imageAndDepth);
             dataMap[imageAndDepth.ID] = imageAndDepth;
         }
         
-        foreach (var imageToMesh in imageToMeshV2Array)
+        //登録されてる全てのimageToMeshコンポーネントに対してdepthを設定
+        foreach (var imageToMesh in imageToMeshV3Array)
         {
             var result = dataMap.TryGetValue(imageToMesh.ID, out imageAndDepth);
             if (result)
             {
-                Texture2D texture2D = new Texture2D(512, 512);
+                Texture2D texture2D = new Texture2D(imageAndDepth.Width, imageAndDepth.Height);
                 texture2D.LoadImage(imageAndDepth.ImageBuffer);
-                imageToMesh.SetTexture(texture2D);
-                imageToMesh.SetDepth(imageAndDepth.Depth);
+                imageToMesh.SetDepth(imageAndDepth.Width, imageAndDepth.Height, texture2D, imageAndDepth.Depth);
             }
         }
     }
+
 }
