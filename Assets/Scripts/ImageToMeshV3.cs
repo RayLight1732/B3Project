@@ -1,6 +1,8 @@
+using System.Collections;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static UnityEngine.Rendering.DebugUI;
 
 public class ImageToMeshV3 : MonoBehaviour
@@ -9,51 +11,108 @@ public class ImageToMeshV3 : MonoBehaviour
     private Camera _camera;
     [SerializeField]
     private string id;
+    [SerializeField]
+    private Material _material;
 
     public string ID
     {
         get { return id; }
     }
 
+    private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
 
-    private int width = 0;
-    private int height = 0;
+    public int Width { get; private set; } = 0;
+    public int Height { get; private set; } = 0;
+
+    private RenderTexture background_depth;
+    private string background_depth_uuid;
+    private RenderTexture background_texture;
+    private string background_texture_uuid;
+
+    private RenderTexture foreground_depth;
+    private string foreground_depth_uuid;
+    private RenderTexture foreground_texture;
+    private string foreground_texture_uuid;
+
+
 
     // Start is called before the first frame update
     void Start()
     {
-        InitMeshrenderer();        
-        
+        InitMeshrenderer();
+        background_depth = new RenderTexture(1024, 1024,24);
+        background_depth.Create();
+
+        background_texture = new RenderTexture(1024, 1024,32);
+        background_texture.Create();
+
+        foreground_depth = new RenderTexture(1024, 1024, 24);
+        foreground_depth.Create();
+
+        foreground_texture = new RenderTexture (1024, 1024, 32);
+        foreground_texture.Create();
+
+        meshRenderer.material.SetTexture("_BackgroundTexture", background_texture);
+        meshRenderer.material.SetTexture("_BackgroundDepth", background_depth);
+        meshRenderer.material.SetTexture("_ForegroundTexture", foreground_texture);
+        meshRenderer.material.SetTexture("_ForegroundDepth", foreground_depth);
     }
 
-    public void SetDepth(int width,int height,Texture2D texture, float[] depth)
+
+
+    public void SetTexture(string uuid, Texture2D texture, bool isBackground)
     {
-        if (width != this.width || height != this.height)
+        Debug.Log("set texture background:" + isBackground + ",uuid:" + uuid);
+        if (isBackground)
         {
-            MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
-            Mesh mesh = CreateMesh(width, height);
-            meshFilter.mesh = mesh;
-            this.width = width;
-            this.height = height;
+            Graphics.Blit(texture,background_texture);
+            background_texture_uuid = uuid;
         }
-        Debug.Log("set depth");
-        //depth転送
-        GraphicsBuffer buffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, depth.Length, sizeof(float));
-        buffer.SetData(depth);
-        meshRenderer.material.SetBuffer("_FloatBuffer", buffer);
-        meshRenderer.material.SetTexture("_MainTex", texture);
-        meshRenderer.material.SetInt("_width", width);
-        meshRenderer.material.SetInt("_height", height);
-
-        float fov = _camera.fieldOfView;
-        float fovHalfTan = Mathf.Tan(fov * Mathf.Deg2Rad / 2f);
-
-        //pixel→mの比例定数
-        float k = 2 * fovHalfTan / height;
-        meshRenderer.material.SetFloat("_k", k);
-        Debug.Log("k" + k);
+        else
+        {
+            Graphics.Blit(texture,foreground_texture);
+            foreground_texture_uuid = uuid;
+        }
+        UpdateShader();
     }
+
+    public void SetDepth(string uuid, Texture2D texture, bool isBackground)
+    {
+        Debug.Log("set depth background:" + isBackground + ",uuid:" + uuid);
+        if (isBackground)
+        {
+            Graphics.Blit(texture,background_depth);
+            Debug.Log(uuid + ":"+texture.GetPixel(Width/2,Height/2)+ texture.GetPixel(Width / 2-10, Height / 2-10)+ texture.GetPixel(Width / 2+10, Height / 2+10));
+            background_depth_uuid = uuid;
+        }
+        else
+        {
+            Graphics.Blit(texture,foreground_depth);
+            foreground_depth_uuid = uuid;
+        }
+        UpdateShader();
+    }
+
+
+    private void UpdateShader()
+    {
+        /*
+        if (background_texture_uuid != null && background_texture_uuid == background_depth_uuid)
+        {
+            //uuidが一致したら背景の更新処理
+            meshRenderer.material.SetTexture("_BackgroundTexture", background_texture);
+            meshRenderer.material.SetTexture("_BackgroundDepth", background_depth);
+        }
+
+        if (foreground_texture_uuid != null && foreground_texture_uuid == foreground_depth_uuid)
+        {
+            //uuidが一致したら前景の更新処理
+            meshRenderer.material.SetTexture("_ForegroundTexture", foreground_texture);
+            meshRenderer.material.SetTexture("_ForegroundDepth", foreground_depth);
+        }*/
+    }
+
 
     // Update is called once per frame
     void Update()
@@ -61,51 +120,39 @@ public class ImageToMeshV3 : MonoBehaviour
         
     }
 
-    /*
-    private float[] LoadCSVToArray(TextAsset csvFile, out int width, out int height)
-    {
-
-        // 行単位でデータを分割
-        string[] lines = csvFile.text.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
-
-        // 行列のサイズを取得
-        int rowCount = lines.Length;
-        int colCount = lines[0].Split(' ').Length;
-        height = rowCount;
-        width = colCount;
-
-        // 配列を作成
-        float[] array = new float[colCount*rowCount];
-
-        // 各セルをfloatに変換して格納
-        for (int i = 0; i < rowCount; i++)
-        {
-            string[] cells = lines[i].Split(' '); // 区切り文字をスペースに設定
-            for (int j = 0; j < colCount; j++)
-            {
-                if (float.TryParse(cells[j], out float value))
-                {
-                    array[i*colCount+j] = value;
-                }
-                else
-                {
-                    Debug.LogWarning($"変換に失敗しました: {cells[j]}");
-                    array[i*colCount+j] = 0f; // デフォルト値を設定
-                }
-            }
-        }
-        Debug.Log(array.Length);
-        return array;
-    }*/
-
     private void InitMeshrenderer()
     {
         MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        Material material = new Material(Shader.Find("Unlit/DepthMeshShader"));
-        meshRenderer.material = material;
+        this.meshFilter = meshFilter;
 
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer.material = this._material;
         this.meshRenderer = meshRenderer;
+    }
+
+    public void SetSize(int width, int height)
+    {
+        Debug.Log("set size:"+width+"x"+height);
+        if (this.Width != width || this.Height != height)
+        {
+            this.Width = width;
+            this.Height = height;
+            UpdateSize();
+        }
+    }
+
+    private void UpdateSize()
+    {
+        Mesh mesh = CreateMesh(Width, Height);
+        meshFilter.mesh = mesh;
+        //pixel→mの比例定数
+
+        float fov = _camera.fieldOfView;
+        float fovHalfTan = Mathf.Tan(fov * Mathf.Deg2Rad / 2f);
+        float k = 2 * fovHalfTan / Height;
+        Debug.Log("k" + k);
+        gameObject.transform.localScale = new Vector3(k*Width,k*Height,1);
+
     }
 
     private Mesh CreateMesh(int width,int height)
@@ -113,7 +160,7 @@ public class ImageToMeshV3 : MonoBehaviour
 
         Mesh mesh = new()
         {
-            indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
+            indexFormat = IndexFormat.UInt32
         };
         Vector3[] vertices = new Vector3[width * height];
         Vector2[] uv = new Vector2[width * height];
@@ -122,7 +169,7 @@ public class ImageToMeshV3 : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 uv[y * width + x] = new Vector2((float)x / width, (float)y / height);
-                vertices[y * width + x] = new Vector3(x,y, 0);
+                vertices[y * width + x] = new Vector3((float)x/width-0.5f,(float)y/height-0.5f, 0);
             }
         }
 

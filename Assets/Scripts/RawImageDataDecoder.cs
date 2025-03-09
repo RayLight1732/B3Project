@@ -9,9 +9,9 @@ using UnityEngine;
 namespace B3Project
 {
 
-    public class PythonDataDecoder : DataDecoder<ReceiveImage>
+    public class RawImageDataDecoder : DataDecoder<DecodedData>
     {
-        public override async Task<ReceiveImage> Accept(NetworkStream stream)
+        public override async Task<DecodedData> Accept(NetworkStream stream)
         {
             /*
              * ‚Æ‚è‚ ‚¦‚¸little endianŒÀ’è
@@ -26,7 +26,6 @@ namespace B3Project
              * byte[imgSize] image
              * 
              */
-
             byte[] intBuffer = new byte[4];
 
             await ReadEnsurely(stream, intBuffer, 0, 4, 100);
@@ -34,7 +33,7 @@ namespace B3Project
             byte[] idBytes = new byte[cameraIDLength];
             await ReadEnsurely(stream, idBytes, 0, cameraIDLength, 100);
             string cameraID = Encoding.UTF8.GetString(idBytes);
-            
+
             await ReadEnsurely(stream, intBuffer, 0, 4, 100);
             int type = BitConverter.ToInt32(intBuffer, 0);
 
@@ -46,57 +45,42 @@ namespace B3Project
 
             await ReadEnsurely(stream, intBuffer, 0, 4, 100);
             int width = BitConverter.ToInt32(intBuffer, 0);
+
             await ReadEnsurely(stream, intBuffer, 0, 4, 100);
             int height = BitConverter.ToInt32(intBuffer, 0);
 
+            await ReadEnsurely(stream, intBuffer, 0, 4, 100);
             int imgSize = BitConverter.ToInt32(intBuffer, 0);
+
             byte[] imgBuffer = new byte[imgSize];
             await ReadEnsurely(stream, imgBuffer, 0, imgSize, 100);
-            
-            return new ReceiveImage(cameraID,type,uuid,width,height,imgBuffer);
+
+            return new DecodedData(RawImageData.DATA_TYPE, new RawImageData(cameraID, type, uuid, width, height, imgBuffer));
         }
-        
-        
     }
 
-    public class ReceiveImage
+    public class RawImageData : CameraData
     {
+        public const string DATA_TYPE = "RawImageData";
         public const int TYPE_BACKGROUND_IMAGE = 0;
         public const int TYPE_BACKGROUND_DEPTH = 1;
         public const int TYPE_FOREGROUND_IMAGE = 2;
         public const int TYPE_FOREGROUND_DEPTH = 3;
 
-        private string cameraID;
-        public string CameraID { get { return cameraID; } }
+        public int Type { get; }
+        public string UUID { get; }
 
-        private int type;
-        public int Type { get { return type; } }
+        public int Width { get; }
+        public int Height { get; }
+        public byte[] ImageBuffer { get; }
 
-        private string uuid;
-
-        public string UUID { get { return uuid; } }
-
-        private int width;
-        public int Width { get { return width; } }
-
-        private int height;
-        public int Height { get { return height; } }
-
-        private byte[] imageBuffer;
-        public byte[] ImageBuffer { get { return imageBuffer; } }
-
-
-        public ReceiveImage(string cameraID,int type,string uuid,int width,int height,byte[] imageBuffer)
+        public RawImageData(string cameraID, int type, string uuid, int width, int height, byte[] imageBuffer) : base(cameraID)
         {
-            this.cameraID = cameraID;
-            this.type = type;
-            this.uuid = uuid;
-            this.width = width;
-            this.height = height;
-            this.imageBuffer = imageBuffer;
+            this.Type = type;
+            this.UUID = uuid;
+            this.Width = width;
+            this.Height = height;
+            this.ImageBuffer = imageBuffer;
         }
-
-
     }
-
 }
