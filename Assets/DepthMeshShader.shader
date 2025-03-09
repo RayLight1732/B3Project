@@ -62,7 +62,7 @@ Shader "Unlit/DepthMeshShader"
             {
                 v2g o;
                 // ピクセル毎の色情報に乗せてきたデプス情報を復元する。[0.0, 1.0]
-				float4 col = tex2Dlod(_ForegroundDepth, float4(v.uv.x, 1-v.uv.y, 0, 0));
+				float4 col = tex2Dlod(_ForegroundDepth, float4(v.uv.x, v.uv.y, 0, 0));
 				// デプスカメラ座標系から空間に展開する。
                 // 色は0~1に正規化されている
                 
@@ -134,7 +134,7 @@ Shader "Unlit/DepthMeshShader"
                 //二乗して1より大きい→半径1の円より大きい
                 float2 quadPos = i.quadPos * 2.0 - 1.0;
                 if (dot(quadPos, quadPos) > 1.0) discard;
-                return tex2D(_ForegroundTexture, float2(i.uv.x,1-i.uv.y));
+                return tex2D(_ForegroundTexture, i.uv);
             }
             ENDCG
         }
@@ -172,7 +172,7 @@ Shader "Unlit/DepthMeshShader"
             {
                 v2f o;
                 // ピクセル毎の色情報に乗せてきたデプス情報を復元する。[0.0, 1.0]
-				float4 col = tex2Dlod(_BackgroundDepth, float4(v.uv.x, 1-v.uv.y, 0, 0));
+				float4 col = tex2Dlod(_BackgroundDepth, float4(v.uv.x, v.uv.y, 0, 0));
 				// デプスカメラ座標系から空間に展開する。
                 // グレースケール色は0~1に正規化されている
 				v.vertex.x = v.vertex.x * col.x *_maxDistance;
@@ -186,11 +186,11 @@ Shader "Unlit/DepthMeshShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float4 d0 = tex2D(_BackgroundDepth, float4(i.uv.x, 1-i.uv.y, 0, 0));				
-                float4 d1 = tex2D(_BackgroundDepth, float4(i.uv.x+0.002,1- i.uv.y, 0, 0));				
-                float4 d2 = tex2D(_BackgroundDepth, float4(i.uv.x,1- i.uv.y+0.002, 0, 0));
+                float4 d0 = tex2D(_BackgroundDepth, float4(i.uv.x, i.uv.y, 0, 0));				
+                float4 d1 = tex2D(_BackgroundDepth, float4(i.uv.x+0.002,i.uv.y, 0, 0));				
+                float4 d2 = tex2D(_BackgroundDepth, float4(i.uv.x,i.uv.y+0.002, 0, 0));
                 // sample the texture for changing foreground
-                fixed4 col = tex2D(_BackgroundTexture, float2(i.uv.x,1-i.uv.y));
+                fixed4 col = tex2D(_BackgroundTexture, i.uv);
                 // 深度の差が大きいところはアルファを0にして消す
                 //_thresholdはm単位なのでmaxDistanceで割ることで0~1に正規化
                 if (abs(d1.x-d0.x)>_threshold/_maxDistance || abs(d2.x-d0.x)>_threshold/_maxDistance) {

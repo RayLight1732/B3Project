@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Windows;
 
 public class ImageAndDepthServer : MonoBehaviour
 {
@@ -28,7 +29,7 @@ public class ImageAndDepthServer : MonoBehaviour
     private void OnEnable()
     {
         tcpServer.StartConnection(System.Net.IPAddress.Any, 51234);
-        Debug.Log("enable");
+        Debug.Log("start connection");
     }
 
     private void OnDisable()
@@ -104,6 +105,7 @@ public class ImageAndDepthServer : MonoBehaviour
             switch (pngData.Type)
             {
                 case PngData.TYPE_BACKGROUND_IMAGE:
+                    File.WriteAllBytes(Application.dataPath+"/"+"png.png",texture2D.EncodeToPNG());
                     imageToMesh.SetTexture(pngData.UUID, texture2D, true);
                     break;
                 case PngData.TYPE_BACKGROUND_DEPTH:
