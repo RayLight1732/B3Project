@@ -13,6 +13,8 @@ public class ImageToMeshV3 : MonoBehaviour
     private string id;
     [SerializeField]
     private Material _material;
+    [SerializeField]
+    private bool _isForegroundUint8;
 
     public string ID
     {
@@ -117,7 +119,7 @@ public class ImageToMeshV3 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        meshRenderer.material.SetFloat("_ForegroundUint8", _isForegroundUint8 ? 1 : 0);
     }
 
     private void InitMeshrenderer()

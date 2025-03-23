@@ -8,7 +8,7 @@ Shader "Unlit/DepthMeshShader"
         _ForegroundDepth ("ForegroundDepth", 2D) = "white" {}
         _threshold ("Threshold(m)",float) = 0.05
         _maxDistance ("MaxDistance",float) = 20
-        _PointSize ("Point Size", Float) = 0.1
+        _PointSize ("Point Size", float) = 0.1
     }
     SubShader
     {
