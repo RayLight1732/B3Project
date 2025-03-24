@@ -13,6 +13,19 @@ public class ImageToMeshV3 : MonoBehaviour
     private string id;
     [SerializeField]
     private Material _material;
+    [SerializeField]
+    private float quatX;
+    [SerializeField]
+    private float quatY;
+    [SerializeField]
+    private float quatZ;
+    [SerializeField]
+    private float quatW;
+
+    private void OnValidate()
+    {
+        gameObject.transform.rotation = new Quaternion(quatX, quatY, quatZ, quatW);
+    }
 
     public string ID
     {
@@ -34,8 +47,6 @@ public class ImageToMeshV3 : MonoBehaviour
     private string foreground_depth_uuid;
     private RenderTexture foreground_texture;
     private string foreground_texture_uuid;
-
-
 
     // Start is called before the first frame update
     void Start()
@@ -117,7 +128,6 @@ public class ImageToMeshV3 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
 
     private void InitMeshrenderer()

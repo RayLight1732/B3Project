@@ -12,6 +12,8 @@ public class ImageAndDepthServer : MonoBehaviour
     private ImageToMeshV3[] imageToMeshV3Array;
 
     private TcpServer<DecodedData> tcpServer;
+
+    
     void Awake()
     {
         var decoderMap = new Dictionary<string, DataDecoder<DecodedData>>()
@@ -181,4 +183,9 @@ public class ImageAndDepthServer : MonoBehaviour
         return null;
     }
 
+    // アプリがバックグラウンドに移行したときに呼ばれる
+    void OnApplicationPause(bool isPaused)
+    {
+        tcpServer.Discard(isPaused);
+    }
 }

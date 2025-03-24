@@ -141,6 +141,7 @@ Shader "Unlit/DepthMeshShader"
         
         Pass
         {
+            
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -193,10 +194,7 @@ Shader "Unlit/DepthMeshShader"
                 fixed4 col = tex2D(_BackgroundTexture, i.uv);
                 // 深度の差が大きいところはアルファを0にして消す
                 //_thresholdはm単位なのでmaxDistanceで割ることで0~1に正規化
-                if (abs(d1.x-d0.x)>_threshold/_maxDistance || abs(d2.x-d0.x)>_threshold/_maxDistance) {
-                    col *= (1.0, 0.0, 0.0, 0.0);
-                }
-                else col *= (1.0, 1.0, 1.0, 1.0);
+                if (abs(d1.x-d0.x)>_threshold/_maxDistance || abs(d2.x-d0.x)>_threshold/_maxDistance) discard;
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
             }

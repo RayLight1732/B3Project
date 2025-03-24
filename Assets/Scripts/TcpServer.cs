@@ -41,6 +41,7 @@ namespace B3Project
         private TcpListener listener;
         private CancellationTokenSource cts;
         private ConcurrentBag<TcpClient> clients = new ConcurrentBag<TcpClient>();
+        private bool discard = false;
 
         public TcpServer(DataDecoder<T> parser)
         {
@@ -91,7 +92,10 @@ namespace B3Project
                 while (client.Connected && !token.IsCancellationRequested)
                 {
                     T data = await parser.Accept(stream);
-                    received.Enqueue(data);
+                    if (!discard)
+                    {
+                        received.Enqueue(data);
+                    }
                 }
             }
             catch (IOException ex)
@@ -131,6 +135,11 @@ namespace B3Project
         public int GetCount()
         {
             return received.Count;
+        }
+
+        public void Discard(bool discard)
+        {
+            this.discard = discard;
         }
     }
 
