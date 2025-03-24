@@ -26,6 +26,7 @@ public class ImageToMeshV3 : MonoBehaviour
     {
         gameObject.transform.rotation = new Quaternion(quatX, quatY, quatZ, quatW);
     }
+    private bool _isForegroundUint8;
 
     public string ID
     {
@@ -111,14 +112,14 @@ public class ImageToMeshV3 : MonoBehaviour
         /*
         if (background_texture_uuid != null && background_texture_uuid == background_depth_uuid)
         {
-            //uuid‚ªˆê’v‚µ‚½‚ç”wŒi‚ÌXVˆ—
+            //uuidï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½wï¿½iï¿½ÌXï¿½Vï¿½ï¿½ï¿½ï¿½
             meshRenderer.material.SetTexture("_BackgroundTexture", background_texture);
             meshRenderer.material.SetTexture("_BackgroundDepth", background_depth);
         }
 
         if (foreground_texture_uuid != null && foreground_texture_uuid == foreground_depth_uuid)
         {
-            //uuid‚ªˆê’v‚µ‚½‚ç‘OŒi‚ÌXVˆ—
+            //uuidï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½iï¿½ÌXï¿½Vï¿½ï¿½ï¿½ï¿½
             meshRenderer.material.SetTexture("_ForegroundTexture", foreground_texture);
             meshRenderer.material.SetTexture("_ForegroundDepth", foreground_depth);
         }*/
@@ -128,6 +129,7 @@ public class ImageToMeshV3 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        meshRenderer.material.SetFloat("_ForegroundUint8", _isForegroundUint8 ? 1 : 0);
     }
 
     private void InitMeshrenderer()
@@ -155,7 +157,7 @@ public class ImageToMeshV3 : MonoBehaviour
     {
         Mesh mesh = CreateMesh(Width, Height);
         meshFilter.mesh = mesh;
-        //pixel¨m‚Ì”ä—á’è”
+        //pixelï¿½ï¿½mï¿½Ì”ï¿½ï¿½è”
 
         float fov = _camera.fieldOfView;
         float fovHalfTan = Mathf.Tan(fov * Mathf.Deg2Rad / 2f);
@@ -189,8 +191,8 @@ public class ImageToMeshV3 : MonoBehaviour
         {
             for (int y = 0; y < height - 1; y++)
             {
-                int p1i = y * width + x;//¶‰º‚Ì’¸“_
-                int p2i = y * width + x + 1;//‰E‰º‚Ì’¸“_
+                int p1i = y * width + x;//ï¿½ï¿½ï¿½ï¿½ï¿½Ì’ï¿½ï¿½_
+                int p2i = y * width + x + 1;//ï¿½Eï¿½ï¿½ï¿½Ì’ï¿½ï¿½_
                 int p3i = (y + 1) * width + x + 1;
                 int p4i = (y + 1) * width + x;
 
@@ -212,7 +214,7 @@ public class ImageToMeshV3 : MonoBehaviour
         mesh.uv = uv;
 
         Bounds bounds = new Bounds();
-        bounds.center = new Vector3(0, 0, 0);  // ’†SÀ•W‚ğw’è
+        bounds.center = new Vector3(0, 0, 0);  // ï¿½ï¿½ï¿½Sï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½wï¿½ï¿½
         bounds.size = new Vector3(100, 100, 100);
         mesh.bounds = bounds;
 

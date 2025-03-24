@@ -10,6 +10,8 @@ public class ImageAndDepthServer : MonoBehaviour
 
     [SerializeField]
     private ImageToMeshV3[] imageToMeshV3Array;
+    [SerializeField]
+    private bool useFloatAsForegroundDepth = true;
 
     private TcpServer<DecodedData> tcpServer;
 
@@ -137,8 +139,17 @@ public class ImageAndDepthServer : MonoBehaviour
                 texture2D = new Texture2D(imageData.Width, imageData.Height, TextureFormat.RGBA32, false, false);
                 break;
             case PngData.TYPE_BACKGROUND_DEPTH:
-            case PngData.TYPE_FOREGROUND_DEPTH:
                 texture2D = new Texture2D(imageData.Width, imageData.Height, TextureFormat.R8, false, true);
+                break;
+            case PngData.TYPE_FOREGROUND_DEPTH:
+                if (useFloatAsForegroundDepth)
+                {
+                    texture2D = new Texture2D(imageData.Width, imageData.Height, TextureFormat.RFloat, false, true);
+                }
+                else
+                {
+                    texture2D = new Texture2D(imageData.Width, imageData.Height, TextureFormat.R8, false, true);
+                }
                 break;
         }
         if (texture2D == null)
