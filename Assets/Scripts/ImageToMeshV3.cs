@@ -1,9 +1,5 @@
-using System.Collections;
-using System.IO;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using static UnityEngine.Rendering.DebugUI;
 
 public class ImageToMeshV3 : MonoBehaviour
 {
