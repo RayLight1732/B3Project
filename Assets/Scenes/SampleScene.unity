@@ -1522,7 +1522,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 030558d50ae4ebc4884afcc43d84e0b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _camera: {fileID: 0}
+  _camera: {fileID: 1267197603}
   id: trash
   _material: {fileID: 2100000, guid: 60ccf1968a6de424a8018f96f0ad8e85, type: 2}
   quatX: 0.03841028
