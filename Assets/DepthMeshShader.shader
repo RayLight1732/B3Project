@@ -133,14 +133,15 @@ Shader "Unlit/DepthMeshShader"
                 //二乗して1より大きい→半径1の円より大きい
                 float2 quadPos = i.quadPos * 2.0 - 1.0;
                 if (dot(quadPos, quadPos) > 1.0) discard;
-                return tex2D(_ForegroundTexture, i.uv);
+                fixed3 col = tex2D(_ForegroundTexture, i.uv);
+                return col;
             }
             ENDCG
         }
         
         Pass
         {
-            
+
             Cull Off
             ZWrite On
             ZTest Always
