@@ -20,7 +20,6 @@ Shader "Unlit/DepthMeshShader"
         {
             Cull Off
             ZWrite On
-            ZTest Always
             Tags{ "LightMode" = "UniversalForward"}
             CGPROGRAM
             #pragma vertex vert
