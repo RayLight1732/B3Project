@@ -134,7 +134,7 @@ Shader "Unlit/DepthMeshShader"
                 float2 quadPos = i.quadPos * 2.0 - 1.0;
                 if (dot(quadPos, quadPos) > 1.0) discard;
                 fixed3 col = tex2D(_ForegroundTexture, i.uv);
-                return col;
+                return (col.xyz,1);
             }
             ENDCG
         }
