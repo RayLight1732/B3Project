@@ -154,8 +154,8 @@ public class ImageToMeshV3 : MonoBehaviour
         Mesh mesh = CreateMesh(Width, Height);
         meshFilter.mesh = mesh;
         //pixel��m�̔��萔
-        meshRenderer.material.SetInt("width",Width);
-        meshRenderer.material.SetInt("height",Height);
+        meshRenderer.material.SetInt("_width",Width);
+        meshRenderer.material.SetInt("_height",Height);
 
         float fov = _camera.fieldOfView;
         float fovHalfTan = Mathf.Tan(fov * Mathf.Deg2Rad / 2f);
