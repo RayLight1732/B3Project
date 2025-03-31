@@ -9,6 +9,8 @@ Shader "Unlit/DepthMeshShader"
         _threshold ("Threshold(m)",float) = 0.05
         _maxDistance ("MaxDistance",float) = 20
         _PointSize ("Point Size", float) = 0.1
+        _width ("Width",int) = 640
+        _height ("Height",int) = 480
     }
     SubShader
     {
@@ -166,6 +168,8 @@ Shader "Unlit/DepthMeshShader"
             sampler2D _BackgroundDepth;
             float _threshold;
             float _maxDistance;
+            int _width;
+            int _height;
 
             v2f vert (appdata v)
             {
@@ -185,14 +189,20 @@ Shader "Unlit/DepthMeshShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float4 d0 = tex2D(_BackgroundDepth, float4(i.uv.x, i.uv.y, 0, 0));				
-                float4 d1 = tex2D(_BackgroundDepth, float4(i.uv.x+0.002,i.uv.y, 0, 0));				
-                float4 d2 = tex2D(_BackgroundDepth, float4(i.uv.x,i.uv.y+0.002, 0, 0));
-                // sample the texture for changing foreground
                 fixed4 col = tex2D(_BackgroundTexture, i.uv);
+                float x0 = floor(i.uv.x*_width)/_width
+                float x1 = (floor(i.uv.x*_width)+1)/_width
+                float y0 = floor(i.uv.y*_width)/_width
+                float y1 = (floor(i.uv.y*_width)+1)/_width
+                float4 d0 = tex2D(_BackgroundDepth, float4(x0,y0,0,0));				
+                float4 d1 = tex2D(_BackgroundDepth, float4(x1,y0,0,0));				
+                float4 d2 = tex2D(_BackgroundDepth, float4(x1,y1,0,0));
+                float4 d3 = tex2D(_BackgroundDepth, float4(x0,y1,0,0));
+                //tex2D is 0~maxDistance->0~1
+                float threshold = _threshold/_maxDistance;
                 // 深度の差が大きいところはアルファを0にして消す
                 //_thresholdはm単位なのでmaxDistanceで割ることで0~1に正規化
-                if (abs(d1.x-d0.x)>_threshold/_maxDistance || abs(d2.x-d0.x)>_threshold/_maxDistance) discard;
+                if (abs(d1.x-d0.x)>threshold || abs(d2.x-d0.x)>threshold || abs(d3.x-d0.x)>threshold) discard;
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
             }
