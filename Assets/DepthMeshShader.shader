@@ -124,7 +124,6 @@ Shader "Unlit/DepthMeshShader"
                 for (int i = 0;i < 3;i++)
                 {
                     generate_geom(p[i],triStream);
-                    triStream.RestartStrip();
                 }
             }
 
