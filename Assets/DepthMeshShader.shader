@@ -192,8 +192,8 @@ Shader "Unlit/DepthMeshShader"
                 fixed4 col = tex2D(_BackgroundTexture, i.uv);
                 float x0 = floor(i.uv.x*_width)/_width;
                 float x1 = (floor(i.uv.x*_width)+1)/_width;
-                float y0 = floor(i.uv.y*_width)/_width;
-                float y1 = (floor(i.uv.y*_width)+1)/_width;
+                float y0 = floor(i.uv.y*_height)/_height;
+                float y1 = (floor(i.uv.y*_height)+1)/_height;
                 float4 d0 = tex2D(_BackgroundDepth, float4(x0,y0,0,0));				
                 float4 d1 = tex2D(_BackgroundDepth, float4(x1,y0,0,0));				
                 float4 d2 = tex2D(_BackgroundDepth, float4(x1,y1,0,0));
