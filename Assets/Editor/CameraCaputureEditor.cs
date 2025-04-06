@@ -7,7 +7,7 @@ using UnityEngine.Windows;
 public class CameraCaptureEditor : EditorWindow
 {
     private Camera targetCamera;
-    private string savePath = "Assets/CapturedImage.png";
+    private string savePath = "Assets/CapturedImages/CapturedImage.png";
     private int imageWidth = 1920;  // ”CˆÓ‚Ì‰ð‘œ“x‚ðŽw’è‰Â”\
 
     [MenuItem("Tools/Capture Camera Image")]
