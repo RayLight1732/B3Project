@@ -1646,10 +1646,10 @@ MonoBehaviour:
   _camera: {fileID: 1267197603}
   id: trash
   _material: {fileID: 2100000, guid: 60ccf1968a6de424a8018f96f0ad8e85, type: 2}
-  quatX: 0.06172302
-  quatY: 0.9923115
-  quatZ: -0.1049466
-  quatW: -0.02223549
+  quatX: -0.02982059
+  quatY: 0.9895321
+  quatZ: -0.09847259
+  quatW: 0.10119321
 --- !u!4 &1267197601
 Transform:
   m_ObjectHideFlags: 0
@@ -1658,8 +1658,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1267197599}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.06172302, y: 0.9923115, z: -0.1049466, w: -0.02223549}
-  m_LocalPosition: {x: -0.5995928, y: 0.7157946, z: 4.636007}
+  m_LocalRotation: {x: -0.029820591, y: 0.9895322, z: -0.098472595, w: 0.10119322}
+  m_LocalPosition: {x: -0.53986114, y: 0.6502218, z: 4.356634}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
