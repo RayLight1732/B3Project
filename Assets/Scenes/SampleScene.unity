@@ -1498,10 +1498,10 @@ MonoBehaviour:
   _camera: {fileID: 1232072525}
   id: printer
   _material: {fileID: 2100000, guid: 60ccf1968a6de424a8018f96f0ad8e85, type: 2}
-  quatX: 0.1097032
-  quatY: 0.2113078
-  quatZ: -0.03718483
-  quatW: 0.9705316
+  quatX: 0.09730047
+  quatY: 0.2531113
+  quatZ: -0.02902504
+  quatW: 0.962094
 --- !u!4 &1232072523
 Transform:
   m_ObjectHideFlags: 0
@@ -1510,8 +1510,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1232072521}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.1097032, y: 0.2113078, z: -0.03718483, w: 0.9705316}
-  m_LocalPosition: {x: -1.2812079, y: 0.70647746, z: -1.7432376}
+  m_LocalRotation: {x: 0.09730047, y: 0.2531113, z: -0.02902504, w: 0.962094}
+  m_LocalPosition: {x: -1.0345674, y: 0.638857, z: -1.4067161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
