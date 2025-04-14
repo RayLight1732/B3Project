@@ -134,6 +134,24 @@ Shader "Unlit/DepthMeshShader"
             fixed4 frag (g2f i) : SV_Target
             {
                 if (! _renderForeground) discard;
+
+                //TODO vertに移す
+                float x0 = floor(i.uv.x*_width)/_width;
+                float x1 = (floor(i.uv.x*_width)+1)/_width;
+                float y0 = floor(i.uv.y*_height)/_height;
+                float y1 = (floor(i.uv.y*_height)+1)/_height;
+                float4 d0 = tex2D(_ForegroundDepth, float2(x0,y0));				
+                float4 d1 = tex2D(_ForegroundDepth, float2(x1,y0));				
+                float4 d2 = tex2D(_ForegroundDepth, float2(x1,y1));
+                float4 d3 = tex2D(_ForegroundDepth, float2(x0,y1));
+                //tex2D is 0~maxDistance->0~1
+                float threshold = _threshold/_maxDistance;
+                // 深度の差が大きいところはアルファを0にして消す
+                //_thresholdはm単位なのでmaxDistanceで割ることで0~1に正規化
+                float d_min = min(min(d0.x, d1.x), min(d2.x, d3.x));
+                float d_max = max(max(d0.x, d1.x), max(d2.x, d3.x));
+                if (d_max - d_min > threshold) discard;
+
                 //-1~1に
                 //二乗して1より大きい→半径1の円より大きい
                 float2 quadPos = i.quadPos * 2.0 - 1.0;
