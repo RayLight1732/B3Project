@@ -59,8 +59,12 @@ Shader "Unlit/DepthMeshShader"
             sampler2D _ForegroundTexture;
             sampler2D _ForegroundDepth;
             float _maxDistance;
+            float _threshold;
             float _PointSize;
+            int _width;
+            int _height;
             uniform float _renderForeground;
+
 
             v2g vert (appdata v)
             {
