@@ -11,6 +11,8 @@ Shader "Unlit/DepthMeshShader"
         _PointSize ("Point Size", float) = 0.1
         _width ("Width",int) = 640
         _height ("Height",int) = 480
+        [MaterialToggle] _renderForeground ("RenderForeground",float) = 1
+        [MaterialToggle] _renderBackground ("RenderBackground",float) = 1
     }
     SubShader
     {
@@ -58,6 +60,7 @@ Shader "Unlit/DepthMeshShader"
             sampler2D _ForegroundDepth;
             float _maxDistance;
             float _PointSize;
+            uniform float _renderForeground;
 
             v2g vert (appdata v)
             {
@@ -130,6 +133,7 @@ Shader "Unlit/DepthMeshShader"
 
             fixed4 frag (g2f i) : SV_Target
             {
+                if (! _renderForeground) discard;
                 //-1~1に
                 //二乗して1より大きい→半径1の円より大きい
                 float2 quadPos = i.quadPos * 2.0 - 1.0;
@@ -169,6 +173,7 @@ Shader "Unlit/DepthMeshShader"
             float _maxDistance;
             int _width;
             int _height;
+            uniform float _renderBackground;
 
             v2f vert (appdata v)
             {
@@ -188,6 +193,7 @@ Shader "Unlit/DepthMeshShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                if (! _renderBackground) discard;
                 fixed4 col = tex2D(_BackgroundTexture, i.uv);
                 float x0 = floor(i.uv.x*_width)/_width;
                 float x1 = (floor(i.uv.x*_width)+1)/_width;
