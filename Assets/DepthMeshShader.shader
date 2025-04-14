@@ -193,15 +193,17 @@ Shader "Unlit/DepthMeshShader"
                 float x1 = (floor(i.uv.x*_width)+1)/_width;
                 float y0 = floor(i.uv.y*_height)/_height;
                 float y1 = (floor(i.uv.y*_height)+1)/_height;
-                float4 d0 = tex2D(_BackgroundDepth, float4(x0,y0,0,0));				
-                float4 d1 = tex2D(_BackgroundDepth, float4(x1,y0,0,0));				
-                float4 d2 = tex2D(_BackgroundDepth, float4(x1,y1,0,0));
-                float4 d3 = tex2D(_BackgroundDepth, float4(x0,y1,0,0));
+                float4 d0 = tex2D(_BackgroundDepth, float2(x0,y0));				
+                float4 d1 = tex2D(_BackgroundDepth, float2(x1,y0));				
+                float4 d2 = tex2D(_BackgroundDepth, float2(x1,y1));
+                float4 d3 = tex2D(_BackgroundDepth, float2(x0,y1));
                 //tex2D is 0~maxDistance->0~1
                 float threshold = _threshold/_maxDistance;
                 // 深度の差が大きいところはアルファを0にして消す
                 //_thresholdはm単位なのでmaxDistanceで割ることで0~1に正規化
-                if (abs(d1.x-d0.x)>threshold || abs(d2.x-d0.x)>threshold || abs(d3.x-d0.x)>threshold) discard;
+                float d_min = min(min(d0.x, d1.x), min(d2.x, d3.x));
+                float d_max = max(max(d0.x, d1.x), max(d2.x, d3.x));
+                if (d_max - d_min > threshold) discard;
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
             }
