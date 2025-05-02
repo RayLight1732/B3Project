@@ -949,10 +949,10 @@ MonoBehaviour:
   _camera: {fileID: 690404998}
   id: 3dprinter
   _material: {fileID: 2100000, guid: 60ccf1968a6de424a8018f96f0ad8e85, type: 2}
-  quatX: -0.07956839
-  quatY: 0.9108196
-  quatZ: -0.01371222
-  quatW: -0.4048314
+  quatX: -0.06171733
+  quatY: 0.8902397
+  quatZ: -0.02538516
+  quatW: -0.4505773
 --- !u!4 &690404996
 Transform:
   m_ObjectHideFlags: 0
@@ -961,8 +961,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 690404992}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.07956839, y: 0.9108196, z: -0.01371222, w: -0.4048314}
-  m_LocalPosition: {x: 2.48746, y: 0.7625427, z: 3.151176}
+  m_LocalRotation: {x: -0.06171733, y: 0.8902397, z: -0.02538516, w: -0.4505773}
+  m_LocalPosition: {x: 3.0525405, y: 0.92344385, z: 3.142801}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1498,10 +1498,10 @@ MonoBehaviour:
   _camera: {fileID: 1232072525}
   id: printer
   _material: {fileID: 2100000, guid: 60ccf1968a6de424a8018f96f0ad8e85, type: 2}
-  quatX: 0.1101108
-  quatY: 0.2200254
-  quatZ: -0.02002607
-  quatW: 0.96905285
+  quatX: 0.1097163
+  quatY: 0.2559639
+  quatZ: -0.02943084
+  quatW: 0.9599889
 --- !u!4 &1232072523
 Transform:
   m_ObjectHideFlags: 0
@@ -1510,8 +1510,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1232072521}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.1101108, y: 0.2200254, z: -0.02002607, w: 0.96905285}
-  m_LocalPosition: {x: -1.3954515, y: 0.7798401, z: -1.9019446}
+  m_LocalRotation: {x: 0.1097163, y: 0.2559639, z: -0.02943084, w: 0.9599889}
+  m_LocalPosition: {x: -1.6418035, y: 0.9316013, z: -1.9668167}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
